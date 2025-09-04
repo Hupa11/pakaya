@@ -15,17 +15,17 @@ jobs:
 
       - name: Organize files
         run: |
-          mkdir -p session_1
-          mkdir -p session_2
-          mkdir -p session_3
-          # Move the first 500 files to session_1
-          ls session | head -n 300 | xargs -I {} mv session_2/{} session_1/
+          mkdir -p session_1 session_2 session_3
           
-          # Move the next 500 files to session_2
-          ls session | head -n 3000 | tail -n 600 | xargs -I {} mv session_2/{} session_2/
+          # Move the first 300 files into session_1
+          ls session | head -n 300 | xargs -I {} mv session/{} session_1/
           
-          # Move the next 1000 files to session_3
-          ls session | head -n 600 | tail -n 900 | xargs -I {} mv session/{} session_3/
+          # Move the next 300 files into session_2
+          ls session | head -n 600 | tail -n 300 | xargs -I {} mv session/{} session_2/
+          
+          # Move the next 300 files into session_3
+          ls session | head -n 900 | tail -n 300 | xargs -I {} mv session/{} session_3/
+          
       - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
