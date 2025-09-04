@@ -1,0 +1,47 @@
+name: Organize Files
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  organize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Organize files
+        run: |
+          # Create folders
+          mkdir -p session_1 session_2 session_3
+
+          # Get all files in 'session' folder
+          files=(session_2/*)
+
+          # Move first 300 files to session_1
+          for f in "${files[@]:0:300}"; do
+            mv "$f" session_1/
+          done
+
+          # Move next 300 files to session_2
+          for f in "${files[@]:300:300}"; do
+            mv "$f" session_2/
+          done
+
+          # Move remaining files to session_3
+          for f in "${files[@]:600}"; do
+            mv "$f" session/
+          done
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add session_1 session_2 session_3
+          git commit -m "Organized files into folders" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
