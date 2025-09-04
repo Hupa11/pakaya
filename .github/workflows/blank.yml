@@ -15,24 +15,19 @@ jobs:
 
       - name: Organize files
         run: |
-          mkdir -p session_1 session_2 session_3
-          files=(session_2/*)
-          for f in "${files[@]:0:300}"; do
-            mv "$f" session_2/
-          done
-          for f in "${files[@]:300:300}"; do
-            mv "$f" session_1/
-          done
-          for f in "${files[@]:600}"; do
-            mv "$f" session_0/
-          done
+
+          # Move the first 300 files to session_2
+          ls session | head -n 300 | xargs -I {} mv session_2/{} session_2/
+
+          # Move the next 300 files to session_1
+          ls session | head -n 600 | tail -n 300 | xargs -I {} mv session_2/{} session_1/
 
       - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add session_1 session_2 session_3
-          git commit -m "Organized files into folders" || echo "No changes to commit"
+          git config --local user.name "GitHub pakaya"
+          git add session_1 session_2
+          git commit -m "Organized first 600 files into session_2 and session_1" || echo "No changes to commit"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
