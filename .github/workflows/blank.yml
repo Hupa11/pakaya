@@ -13,21 +13,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Organize files
+      - name: Organize files from session_2
         run: |
+          # Ensure target folders exist
+          mkdir -p session_1 session_2_temp
 
-          # Move the first 300 files to session_2
-          ls session | head -n 300 | xargs -I {} mv session_2/{} session_2/
+          # Put all files from session_2 into an array
+          files=(session_2/*)
 
-          # Move the next 300 files to session_1
-          ls session | head -n 600 | tail -n 300 | xargs -I {} mv session_2/{} session_1/
+          # Move first 300 files to session_2_temp (keep them in session_2 logically)
+          for f in "${files[@]:0:300}"; do
+            mv "$f" session_2_temp/
+          done
+
+          # Move next 300 files to session_1
+          for f in "${files[@]:300:300}"; do
+            mv "$f" session_1/
+          done
+
+          # Move files back from session_2_temp to session_2
+          mv session_2_temp/* session_2/
+          rmdir session_2_temp
 
       - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub pakaya"
           git add session_1 session_2
-          git commit -m "Organized first 600 files into session_2 and session_1" || echo "No changes to commit"
+          git commit -m "Organized files into session_2 and session_1" || echo "No changes to commit"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
