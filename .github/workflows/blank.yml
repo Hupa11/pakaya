@@ -1,0 +1,29 @@
+name: Clean Root Files
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Delete root files (keep folders safe)
+        run: |
+          # Delete all files in repo root but keep folders
+          find . -maxdepth 1 -type f ! -name ".gitignore" -delete
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git commit -m "Deleted root-level files (kept folders)" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
