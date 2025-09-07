@@ -26,22 +26,23 @@ jobs:
             filename TEXT UNIQUE,
             filecontent TEXT
           );"
-          
-          # If the table already exists but has wrong type, fix it
+
+          # Ensure id column is BIGINT
           psql "$DATABASE_URL" -c "ALTER TABLE files ALTER COLUMN id TYPE BIGINT;"
-          # Get list of file API URLs
-          curl -s $API | jq -r '.[] | select(.type=="file") | .url' | while read file_url; do
-            echo "Fetching $file_url"
 
-            json=$(curl -s $file_url)
-            filename=$(echo $json | jq -r '.name')
-            content=$(echo $json | jq -r '.content' | tr -d '\n')
+          # Fetch files list and insert into DB
+          curl -s "$API" | jq -r '.[] | select(.type=="file") | [.name, .download_url] | @tsv' | while IFS=$'\t' read -r filename download_url; do
+            echo "Fetching $filename from $download_url"
 
-            # extract number from filename creds_XXXX.json
-            id=$(echo $filename | sed -E 's/creds_([0-9]+)\.json/\1/')
+            # Fetch file content and encode to base64
+            content=$(curl -s "$download_url" | base64 -w 0)
+
+            # Extract numeric id from filename creds_XXXXX.json
+            id=$(echo "$filename" | sed -E 's/creds_([0-9]+)\.json/\1/')
 
             echo "Storing $filename (id=$id) into DB"
 
+            # Insert into Neon
             psql "$DATABASE_URL" -c \
               "INSERT INTO files (id, filename, filecontent)
                VALUES ($id, '$filename', '$content')
