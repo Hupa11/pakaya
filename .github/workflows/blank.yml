@@ -17,8 +17,8 @@ jobs:
 
       - name: Fetch files from GitHub API and insert into Neon
         run: |
-          DATABASE_URL="postgresql://admin:npg_RJV2Sn6BHwPC@ep-wild-haze-adg6n675-pooler.c-2.us-east-1.aws.neon.tech/sfolder1?channel_binding=require&sslmode=require"
-          API="https://api.github.com/repos/Hupa11/pakaya/contents/session_2"
+          DATABASE_URL="postgresql://admin:npg_PujhWGVgs04F@ep-solitary-glitter-adf4o7o1-pooler.c-2.us-east-1.aws.neon.tech/sfolder2?channel_binding=require&sslmode=require"
+          API="https://api.github.com/repos/Hupa11/pakaya/contents/session_1"
 
           # Make sure table exists
           psql "$DATABASE_URL" -c "CREATE TABLE IF NOT EXISTS files (
