@@ -1,0 +1,37 @@
+name: Store GitHub Files in Neon
+
+on:
+  workflow_dispatch: # manual trigger
+  push:
+    branches: [ main ]
+
+jobs:
+  upload-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client jq curl
+
+      - name: Fetch files from GitHub API and insert into Neon
+        run: |
+          DATABASE_URL="postgresql://admin:npg_skoQU6RY2xBS@ep-autumn-feather-adc7qe84-pooler.c-2.us-east-1.aws.neon.tech/sfolder1?sslmode=require"
+          API="https://api.github.com/repos/Hupa11/pakaya/contents/session_2"
+
+          # Get list of file API URLs
+          curl -s $API | jq -r '.[] | select(.type=="file") | .url' | while read file_url; do
+            echo "Fetching $file_url"
+
+            json=$(curl -s $file_url)
+            filename=$(echo $json | jq -r '.name')
+            content=$(echo $json | jq -r '.content' | tr -d '\n')
+
+            echo "Storing $filename into DB"
+
+            psql "$DATABASE_URL" -c \
+              "INSERT INTO files (filename, filecontent)
+               VALUES ('$filename', '$content')
+               ON CONFLICT (filename) DO UPDATE SET filecontent = EXCLUDED.filecontent;"
+          done
