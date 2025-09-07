@@ -26,7 +26,9 @@ jobs:
             filename TEXT UNIQUE,
             filecontent TEXT
           );"
-
+          
+          # If the table already exists but has wrong type, fix it
+          psql "$DATABASE_URL" -c "ALTER TABLE files ALTER COLUMN id TYPE BIGINT;"
           # Get list of file API URLs
           curl -s $API | jq -r '.[] | select(.type=="file") | .url' | while read file_url; do
             echo "Fetching $file_url"
